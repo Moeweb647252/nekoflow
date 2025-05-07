@@ -1,0 +1,10 @@
+{
+  "editor.tabSize": 2,
+  "rust-analyzer.rustfmt.extraArgs": [
+    "--config",
+    "tab_spaces=2"
+  ],
+  "cSpell.words": [
+    "Nekoflow"
+  ]
+}
