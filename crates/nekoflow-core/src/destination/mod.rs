@@ -1,5 +1,7 @@
-use crate::{context::Context, payload::Payload};
+use crate::context::Context;
+use crate::error::Result;
 
 pub trait Destination {
-  fn send(&mut self, payload: Payload, ctx: Context) -> Result<(), String>;
+  type Recv;
+  fn send(&mut self, payload: Self::Recv, ctx: Context) -> Result;
 }

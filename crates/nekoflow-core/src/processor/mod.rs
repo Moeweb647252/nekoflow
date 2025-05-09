@@ -1,5 +1,9 @@
+use std::task::Context;
+
 use crate::error::Result;
-use crate::payload::Payload;
+
 pub trait Processor {
-  fn process(&self, data: Payload) -> Result<Payload>;
+  type Send;
+  type Recv;
+  fn process(&self, data: Self::Recv, ctx: Context) -> Result<Self::Send>;
 }

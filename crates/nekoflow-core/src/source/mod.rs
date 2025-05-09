@@ -2,6 +2,7 @@ use std::task::Context;
 
 use crate::error::Result;
 
-trait Source {
-  fn get(&mut self, ctx: Context) -> Result;
+pub trait Source {
+  type Send;
+  fn get(&mut self, ctx: Context) -> Result<Self::Send>;
 }
