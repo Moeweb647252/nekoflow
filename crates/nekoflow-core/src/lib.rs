@@ -8,3 +8,5 @@ pub mod pipeline;
 pub mod processor;
 pub mod source;
 pub mod stream;
+#[cfg(test)]
+mod tests;
