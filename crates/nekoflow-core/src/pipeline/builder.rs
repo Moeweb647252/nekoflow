@@ -1,59 +1,59 @@
 use super::Pipeline;
-use crate::{destination::Destination, processor::Processor, source::Source};
-pub struct PipelineBuilder<P> {
-  pub(crate) pipeline: P,
+use crate::{
+  destination::Destination,
+  processor::{Processor, Processors},
+  source::Source,
+};
+pub struct PipelineBuilder<S, P, D> {
+  pub(crate) name: String,
+  pub(crate) sorurce: S,
+  pub(crate) processors: P,
+  pub(crate) destination: D,
 }
 
-impl<P> PipelineBuilder<P> {
-  pub(crate) fn set_pipeline<P2>(pipeline: P2) -> PipelineBuilder<P2> {
-    PipelineBuilder { pipeline }
+impl PipelineBuilder<(), (), ()> {
+  pub fn new(name: impl ToString) -> Self {
+    PipelineBuilder {
+      name: name.to_string(),
+      sorurce: (),
+      processors: (),
+      destination: (),
+    }
   }
 
-  pub(crate) fn inner_build(self) -> Pipeline<P> {
-    Pipeline {
-      pipeline: self.pipeline,
+  pub fn source<S: Source>(self, source: S) -> PipelineBuilder<S, (), ()> {
+    PipelineBuilder {
+      name: self.name,
+      sorurce: source,
+      processors: (),
+      destination: (),
     }
   }
 }
 
-impl PipelineBuilder<()> {
-  pub fn new() -> Self {
-    PipelineBuilder { pipeline: () }
-  }
-}
-
-impl PipelineBuilder<()> {
-  pub fn source<S: Source>(self, source: S) -> PipelineBuilder<S> {
-    PipelineBuilder { pipeline: source }
-  }
-}
-
-impl<S: Source> PipelineBuilder<S> {
-  pub fn destination<D: Destination<Recv = S::Send>>(
+impl<S: Source> PipelineBuilder<S, (), ()> {
+  pub fn processor<P1: Processor<Recv = S::Send>>(
     self,
-    destination: D,
-  ) -> PipelineBuilder<(S, D)> {
+    processor: P1,
+  ) -> PipelineBuilder<S, P1, ()> {
     PipelineBuilder {
-      pipeline: (self.pipeline, destination),
+      name: self.name,
+      sorurce: self.sorurce,
+      processors: (processor),
+      destination: (),
     }
   }
 }
 
-impl<S: Source, D: Destination> PipelineBuilder<(S, D)> {
-  pub fn build(self) -> Pipeline<(S, D)> {
+impl<S: Source<Send = P::Recv>, P: Processors, D: Destination<Recv = P::Send>>
+  PipelineBuilder<S, P, D>
+{
+  pub(crate) fn inner_build(self) -> Pipeline<S, P, D> {
     Pipeline {
-      pipeline: self.pipeline,
+      name: self.name,
+      source: self.sorurce,
+      destination: self.destination,
+      processors: self.processors,
     }
   }
 }
-
-impl<S: Source> PipelineBuilder<S> {
-  pub fn processor<P: Processor<Recv = S::Send>>(self, processor: P) -> PipelineBuilder<(S, P)> {
-    PipelineBuilder {
-      pipeline: (self.pipeline, processor),
-    }
-  }
-}
-
-use nekoflow_macros::pipeline_builder_impls;
-pipeline_builder_impls!(3);

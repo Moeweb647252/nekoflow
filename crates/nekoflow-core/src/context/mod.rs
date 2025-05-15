@@ -1,6 +1,6 @@
 use std::{any::TypeId, collections::HashMap, ops::Deref, sync::Arc};
 
-struct _Context {
+pub struct _Context {
   state: HashMap<TypeId, Box<dyn std::any::Any>>,
 }
 

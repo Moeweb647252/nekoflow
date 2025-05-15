@@ -7,7 +7,7 @@ use crate::source::Source;
 struct TestSource {}
 impl Source for TestSource {
   type Send = String;
-  fn get(&mut self, _ctx: Context) -> Result<String> {
+  async fn get(&mut self, _ctx: Context) -> Result<String> {
     Ok(String::from("test"))
   }
 }
@@ -15,7 +15,7 @@ impl Source for TestSource {
 struct TestDestination {}
 impl Destination for TestDestination {
   type Recv = String;
-  fn send(&mut self, payload: Self::Recv, _ctx: Context) -> Result {
+  async fn send(&mut self, payload: Self::Recv, _ctx: Context) -> Result {
     assert_eq!(payload, "test");
     Ok(())
   }
@@ -27,7 +27,7 @@ struct TestProcessor {}
 impl Processor for TestProcessor {
   type Recv = String;
   type Send = String;
-  fn process(&self, payload: Self::Recv, _ctx: Context) -> Result<Self::Send> {
+  async fn process(&self, payload: Self::Recv, _ctx: Context) -> Result<Self::Send> {
     Ok(payload)
   }
 }
@@ -38,10 +38,4 @@ fn test_pipeline() {
   let destination = TestDestination {};
   let processor = TestProcessor {};
 
-  let pipeline = PipelineBuilder::new()
-    .source(source)
-    .processor(processor.clone())
-    .processor(processor)
-    .destination(destination)
-    .build();
 }

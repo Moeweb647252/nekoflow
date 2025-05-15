@@ -8,3 +8,4 @@ bytes.workspace = true
 dynosaur = "0.2.0"
 thiserror = "2.0.12"
 nekoflow-macros = { path = "../nekoflow-macros" }
+tokio = { version = "1.45.0", features = ["full"] }

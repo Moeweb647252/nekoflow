@@ -1,16 +1,29 @@
 mod builder;
 pub use builder::PipelineBuilder;
 
-use crate::{destination::Destination, error::Result, processor::Processor, source::Source};
+use crate::{
+  destination::Destination,
+  error::Result,
+  processor::{Processor, Processors},
+  source::Source,
+};
 
-pub struct Pipeline<S: Source, P, D: Destination> {
+pub struct Pipeline<S: Source<Send = P::Recv>, P: Processors, D: Destination<Recv = P::Send>> {
+  pub(crate) name: String,
   pub(crate) source: S,
   pub(crate) destination: D,
   pub(crate) processors: P,
 }
 
-impl<S: Source, P, D: Destination> Pipeline<S, P, D> {
-  pub fn source(&mut self) -> &mut S {
-    &mut self.source
+impl<P: Processors, S: Source<Send = P::Recv>, D: Destination<Recv = P::Send>> Pipeline<S, P, D> {
+  pub fn source(&self) -> &S {
+    &self.source
   }
+  pub fn destination(&self) -> &D {
+    &self.destination
+  }
+  pub fn processors(&self) -> &P {
+    &self.processors
+  }
+
 }
