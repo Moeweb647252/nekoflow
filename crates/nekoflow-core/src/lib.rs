@@ -1,3 +1,5 @@
+#![feature(unboxed_closures)]
+
 pub mod context;
 pub mod destination;
 pub mod error;

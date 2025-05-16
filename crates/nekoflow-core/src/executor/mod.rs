@@ -1,22 +1,24 @@
-use crate::pipeline::Pipeline;
-use crate::{
-  destination::Destination,
-  processor::{Processor, Processors},
-  source::Source,
-};
 use crate::context::Context;
+use crate::pipeline::Pipeline;
+use crate::{destination::Destination, processor::Processors, source::Source};
 
-pub struct Executor<P: Processors, S: Source<Send = P::Recv>, D: Destination<Recv = P::Send>> {
+pub struct Executor<S: Source<Send = P::Recv>, P: Processors, D: Destination<Recv = P::Send>> {
   pipeline: Pipeline<S, P, D>,
-  context: Context
+  context: Context,
+}
+
+impl<S: Source<Send = P::Recv>, P: Processors, D: Destination<Recv = P::Send>> Executor<S, P, D> {
+  pub fn new(pipeline: Pipeline<S, P, D>, context: Context) -> Self {
+    Executor { pipeline, context }
+  }
 }
 
 pub trait ExecutorTrait {
   fn execute(&mut self);
 }
 
-impl<P: Processors, S: Source<Send = P::Recv>, D: Destination<Recv = P::Send>> ExecutorTrait
-  for Executor<P, S, D>
+impl<S: Source<Send = P::Recv>, P: Processors, D: Destination<Recv = P::Send>> ExecutorTrait
+  for Executor<S, P, D>
 {
   fn execute(&mut self) {
     // Execute the pipeline
@@ -24,10 +26,17 @@ impl<P: Processors, S: Source<Send = P::Recv>, D: Destination<Recv = P::Send>> E
     let destination = &mut self.pipeline.destination;
     let processors = &mut self.pipeline.processors;
 
-    tokio::runtime::Builder::new_current_thread().enable_all().build().unwrap().block_on(async {
-      let data = source.get(self.context.clone()).await.unwrap();
-      let data = processors.process(data, self.context.clone()).await.unwrap();
-      destination.send(data, self.context.clone()).await.unwrap();
-    });
+    tokio::runtime::Builder::new_current_thread()
+      .enable_all()
+      .build()
+      .unwrap()
+      .block_on(async {
+        let data = source.get(self.context.clone()).await.unwrap();
+        let data = processors
+          .process(data, self.context.clone())
+          .await
+          .unwrap();
+        destination.send(data, self.context.clone()).await.unwrap();
+      });
   }
 }

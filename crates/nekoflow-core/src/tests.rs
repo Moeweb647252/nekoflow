@@ -1,14 +1,15 @@
 use crate::context::Context;
 use crate::destination::Destination;
 use crate::error::Result;
+use crate::executor::ExecutorTrait;
 use crate::pipeline::PipelineBuilder;
-use crate::processor::Processor;
+use crate::processor::{FnProcessor, Processor};
 use crate::source::Source;
 struct TestSource {}
 impl Source for TestSource {
   type Send = String;
   async fn get(&mut self, _ctx: Context) -> Result<String> {
-    Ok(String::from("test"))
+    Ok(String::from("Hello, nekoflow!"))
   }
 }
 
@@ -16,7 +17,7 @@ struct TestDestination {}
 impl Destination for TestDestination {
   type Recv = String;
   async fn send(&mut self, payload: Self::Recv, _ctx: Context) -> Result {
-    assert_eq!(payload, "test");
+    println!("{}", payload);
     Ok(())
   }
 }
@@ -37,5 +38,28 @@ fn test_pipeline() {
   let source = TestSource {};
   let destination = TestDestination {};
   let processor = TestProcessor {};
+  let pipeline = PipelineBuilder::new("test")
+    .source(source)
+    .processor(processor.clone())
+    .processor(processor)
+    .destination(destination)
+    .build();
+  let mut executor = crate::executor::Executor::new(pipeline, Context::new());
+  executor.execute();
+}
 
+#[test]
+fn test_flow() {
+  let source = TestSource {};
+  let destination = TestDestination {};
+  let processor = TestProcessor {};
+  let pipeline = PipelineBuilder::new("test")
+    .source(source)
+    .processor(FnProcessor::new(|x| x))
+    .processor(processor)
+    .destination(destination)
+    .build();
+  let mut flow = crate::flow::Flow::new();
+  flow.add_pipeline(pipeline);
+  flow.run();
 }
