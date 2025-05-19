@@ -8,15 +8,15 @@ use crate::source::Source;
 struct TestSource {}
 impl Source for TestSource {
   type Send = String;
-  async fn get(&mut self, _ctx: Context) -> Result<String> {
-    Ok(String::from("Hello, nekoflow!"))
+  async fn get(&mut self, _ctx: Context) -> Result<Option<String>> {
+    Ok(Some(String::from("Hello, nekoflow!")))
   }
 }
 
 struct TestDestination {}
 impl Destination for TestDestination {
   type Recv = String;
-  async fn send(&mut self, payload: Self::Recv, _ctx: Context) -> Result {
+  async fn recv(&mut self, payload: Self::Recv, _ctx: Context) -> Result {
     println!("{}", payload);
     Ok(())
   }

@@ -2,7 +2,7 @@ use nekoflow_macros::pipeline_builder_impls;
 
 use super::Pipeline;
 use crate::{
-  destination::Destination,
+  destination::{Destination, Null},
   processor::{Processor, Processors},
   source::Source,
 };
@@ -55,6 +55,17 @@ impl<S: Source<Send = P::Recv>, P: Processors, D: Destination<Recv = P::Send>>
       name: self.name,
       source: self.source,
       destination: self.destination,
+      processors: self.processors,
+    }
+  }
+}
+
+impl<S: Source<Send = P::Recv>, P: Processors> PipelineBuilder<S, P, ()> {
+  pub fn build(self) -> Pipeline<S, P, Null<P::Send>> {
+    Pipeline {
+      name: self.name,
+      source: self.source,
+      destination: Null::new(),
       processors: self.processors,
     }
   }

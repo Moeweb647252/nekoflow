@@ -5,3 +5,9 @@ edition = "2024"
 
 [dependencies]
 nekoflow-core = { path = "../nekoflow-core" }
+tokio = { workspace = true, features = ["full"] }
+
+[features]
+default = ["full"]
+full = ["fs"]
+fs = []
